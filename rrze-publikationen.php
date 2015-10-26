@@ -3,7 +3,7 @@
 /*
   Plugin Name: RRZE-Publikationen
   Plugin URI: https://github.com/RRZE-Webteam/rrze-publikationen
-  Version: 1.0
+  Version: 1.1
   Description: Plugin zum Verwalten von Publikationen (Inhaltstyp und Shortcodes)
   Author: RRZE-Webteam
   Author URI: http://blogs.fau.de/webworking/
@@ -219,7 +219,7 @@ class RRZE_Publikationen {
 
 		register_taxonomy( 'tags', 'publication',
 			array(
-				'hierarchical' => false,
+				'hierarchical' => true,
 				'labels' => array(
 					'name' => _x( 'Schlagworte', 'taxonomy general name', self::textdomain ),
 					'singular_name' => _x( 'Schlagwort', 'taxonomy singular name', self::textdomain ),
@@ -335,6 +335,9 @@ class RRZE_Publikationen {
 			'publisher' => array (
 				'head' => __('Verlag', self::textdomain),
 				'data' => 'rrze_publications_verlag'),
+			'isbn' => array (
+				'head' => __('ISBN', self::textdomain),
+				'data' => 'rrze_publications_isbn'),
 			'price' => array (
 				'head' => __('Preis', self::textdomain),
 				'data' => 'rrze_publications_preis', true),
@@ -354,6 +357,10 @@ class RRZE_Publikationen {
 		print '</pre>';
 */
 
+		if ($show == 'list' || $show == 'single') {
+			$output .= '<ul style="list-style-type: none; margin-left: 0;">';
+		}
+
 		if ($show == 'table') {
 			$output .= '<table>';
 			$output .= '<tr>';
@@ -370,38 +377,65 @@ class RRZE_Publikationen {
 				continue;
 			endif;
 
-			if ($show == 'list' || $show == 'single') {
+			$autor = get_post_meta($post->ID, 'rrze_publications_autoren', true);
+			$titel = get_the_title();
+			$zusatz = get_post_meta($post->ID, 'rrze_publications_zusatz', true);
+			$ort = get_post_meta($post->ID, 'rrze_publications_ort', true);
+			$verlag = get_post_meta($post->ID, 'rrze_publications_verlag', true);
+			$jahr = get_post_meta($post->ID, 'rrze_publications_jahr', true);
+			$isbn = get_post_meta($post->ID, 'rrze_publications_isbn', true);
+			$preis = get_post_meta($post->ID, 'rrze_publications_preis', true);
+			$vorraetig = get_post_meta($post->ID, 'rrze_publications_vorraetig', true);
+
+				if ($show == 'list' || $show == 'single') {
 			// Liste oder Einzelansicht
 				if ($show == 'single' && $id == '') {
 					$output .= '<p>Publikations-ID fehlt!</p>';
 					return;
 				}
-				$output .= '<p>';
-				$output .= ($link == 'yes' ? '<a href="' . esc_url( get_permalink($post->ID) ) . '">' : '');
-				if (get_post_meta($post->ID, 'rrze_publications_autoren', true)) {
-					$output .= get_post_meta($post->ID, 'rrze_publications_autoren', true) . ': <b>' . get_the_title() . '</b>';
+				$output .= '<li style="margin-bottom: 10px;" itemprop="mainEntity" itemscope="" itemtype="http://schema.org/Book">';
+				$output .= ($link == 'yes' ? '<a href="' . esc_url( get_permalink($post->ID) ) . '" itemprop="url">' : '');
+				// Autor: Titel (ggf verlinkt)
+				$output .= ($autor ? '<span itemprop="author" itemscope="" itemtype="http://schema.org/Person"><meta itemprop="name" content="' . $autor . '" />' . $autor . '</span>: ': '');
+				$output .=  '<b><span itemprop="name">' . $titel . '</span></b>';
 				$output .= ($link == 'yes' ? '</a>' : '');
 				$output .= '<br />';
-				}
-				if (get_post_meta($post->ID, 'rrze_publications_zusatz', true)) {
-					$output .= get_post_meta($post->ID, 'rrze_publications_zusatz', true) . '<br />';
-				}
-				if (get_post_meta($post->ID, 'rrze_publications_ort', true)
-						|| get_post_meta($post->ID, 'rrze_publications_verlag', true)
-						|| get_post_meta($post->ID, 'rrze_publications_jahr', true)) {
-					$output .= (get_post_meta($post->ID, 'rrze_publications_ort', true) ? get_post_meta($post->ID, 'rrze_publications_ort', true) . ': ' : '');
-					$output .= (get_post_meta($post->ID, 'rrze_publications_verlag', true) ? get_post_meta($post->ID, 'rrze_publications_verlag', true) : '') . ' ';
-					$output .= (get_post_meta($post->ID, 'rrze_publications_jahr', true) ? get_post_meta($post->ID, 'rrze_publications_jahr', true) : '') . '<br />';
-				}
 
-				if (get_post_meta($post->ID, 'rrze_publications_preis', true) || get_post_meta($post->ID, 'rrze_publications_vorraetig', true)) {
-					setlocale(LC_MONETARY, get_locale());
-					$output .= (get_post_meta($post->ID, 'rrze_publications_preis', true) ? __('Preis: ', RRZE_Publikationen::textdomain) . money_format('%.2n', get_post_meta($post->ID, 'rrze_publications_preis', true)) : '');
+				// Zusatzinfos
+				$output .= ($zusatz ? $zusatz . '<br />' : '');
+
+				// Ort: Verlag, Jahr
+				if ($ort || $verlag || $jahr) {
+					$output .= ($ort ? $ort . ': ' : '');
+					$output .= ($verlag ? '<span itemprop="publisher" itemtype="http://schema.org/Organization" itemscope=""><meta itemprop="name" content="' . $verlag . '" />' . $verlag  . '</span>, ': '');
+					$output .= ($jahr ? '<span itemprop="datePublished" content="' . $jahr . '">' . $jahr . '</span>' : '');
 					$output .= '<br />';
-					$output .= __('Vorrätig:', RRZE_Publikationen::textdomain) . ' ' . (get_post_meta($post->ID, 'rrze_publications_vorraetig', true) == 1 ? __('ja', RRZE_Publikationen::textdomain) : __('nein', RRZE_Publikationen::textdomain));
+				}
+				// ISBN
+				if ($isbn) {
+					$output .= __('ISBN', self::textdomain) . ': <span itemprop="isbn">' . $isbn . '</span><br />';
+				}
+
+
+				// Preis
+				if ($preis || $vorraetig) {
+					$output .= '<div itemprop="offers" itemscope itemtype="http://schema.org/Offer">';
+					setlocale(LC_MONETARY, get_locale());
+					$locale_info = localeconv();
+					$output .= ($preis ? __('Preis: ', RRZE_Publikationen::textdomain)
+							. '<span itemprop="price" content="' . $preis . '">'
+							. money_format('%.2n', $preis)
+							. '</span><meta itemprop="priceCurrency" content="'. $locale_info['int_curr_symbol'] . '" /><br />'
+							: '');
+				// Verfügbarkeit
+					$output .= __('Vorrätig:', RRZE_Publikationen::textdomain) . ' '
+							. ($vorraetig == 1
+							? '<meta itemprop="availability" content="http://schema.org/InStock" />' . __('ja', RRZE_Publikationen::textdomain)
+							: '<meta itemprop="availability" content="http://schema.org/OutOfStock"/>' . __('nein', RRZE_Publikationen::textdomain));
+					$output .= '</div>';
 
 				}
-				$output .= '</p>';
+				$output .= '</li>';
 
 			} else {
 			//Tabelle
@@ -410,14 +444,14 @@ class RRZE_Publikationen {
 					$output .= '<td>';
 					switch($table_col) {
 						case 'title':
-							$output .= get_the_title();
+							$output .= $titel;
 							break;
 						case 'price':
 							setlocale(LC_MONETARY, get_locale());
-							$output .= (get_post_meta($post->ID, 'rrze_publications_preis', true) ? money_format('%.2n', get_post_meta($post->ID, 'rrze_publications_preis', true)) : '');
+							$output .= ($preis ? money_format('%.2n', $preis) : '');
 							break;
 						case 'availible':
-							$output .= (get_post_meta($post->ID, 'rrze_publications_vorraetig', true) == 1 ? __('ja', RRZE_Publikationen::textdomain) : __('nein', RRZE_Publikationen::textdomain));
+							$output .= ($vorraetig == 1 ? __('ja', RRZE_Publikationen::textdomain) : __('nein', RRZE_Publikationen::textdomain));
 							break;
 						case 'updated':
 							$output .= get_the_modified_date('d.m.Y \&\n\d\a\s\h\; H:i');
@@ -431,6 +465,10 @@ class RRZE_Publikationen {
 			}
 
 		endwhile;
+
+		if ($show == 'list') {
+			$output .= '</ul>';
+		}
 
 		if ($show == 'table') {
 			$output .= '</table>';

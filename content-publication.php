@@ -10,13 +10,25 @@
  */
 global $options;
 global $post;
+
+$autor = get_post_meta($post->ID, 'rrze_publications_autoren', true);
+$titel = get_the_title();
+$zusatz = get_post_meta($post->ID, 'rrze_publications_zusatz', true);
+$ort = get_post_meta($post->ID, 'rrze_publications_ort', true);
+$verlag = get_post_meta($post->ID, 'rrze_publications_verlag', true);
+$jahr = get_post_meta($post->ID, 'rrze_publications_jahr', true);
+$isbn = get_post_meta($post->ID, 'rrze_publications_isbn', true);
+$preis = get_post_meta($post->ID, 'rrze_publications_preis', true);
+$vorraetig = get_post_meta($post->ID, 'rrze_publications_vorraetig', true);
 ?>
 
-<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+<article <?php post_class(); ?> itemprop="mainEntity" itemscope="" itemtype="http://schema.org/Book">
 	<?php
 	// Post thumbnail.
 	if (has_post_thumbnail($post->ID)) {
-		echo get_the_post_thumbnail($post->ID, 'thumbnail');
+		echo '<div class="post-thumbnail">';
+		echo get_the_post_thumbnail($post->ID, 'medium', array( 'itemprop' => 'image' ));
+		echo '</div>';
 	}
 	?>
 
@@ -27,38 +39,52 @@ global $post;
 	<div class="entry-content">
 		<p>
 			<?php
-			if (get_post_meta($post->ID, 'rrze_publications_autoren', true)) {
-				print get_post_meta($post->ID, 'rrze_publications_autoren', true) . ': <b>' . get_the_title() . '</b><br />';
+			print ($autor ? '<span itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="' . $autor . '" />' . $autor . '</span>: ': '');
+			print '<b><span itemprop="name">' . $titel . '</span></b><br />';
+			print ($zusatz ? $zusatz . '<br />' : '');
+			if ($ort || $verlag || $jahr) {
+				print  ($ort ? $ort . ': ' : '');
+				print ($verlag ? '<span itemprop="publisher" itemtype="http://schema.org/Organization" itemscope=""><meta itemprop="name" content="' . $verlag . '" />' . $verlag  . '</span>, ': '');
+				print ($jahr ? '<span itemprop="datePublished" content="' . $jahr . '">' . $jahr . '</span>' : '');
+				print '<br />';
 			}
-			if (get_post_meta($post->ID, 'rrze_publications_zusatz', true)) {
-				print get_post_meta($post->ID, 'rrze_publications_zusatz', true) . '<br />';
-			}
-			if (get_post_meta($post->ID, 'rrze_publications_ort', true) || get_post_meta($post->ID, 'rrze_publications_verlag', true) || get_post_meta($post->ID, 'rrze_publications_jahr', true)) {
-				print (get_post_meta($post->ID, 'rrze_publications_ort', true) ? get_post_meta($post->ID, 'rrze_publications_ort', true) . ': ' : '');
-				print (get_post_meta($post->ID, 'rrze_publications_verlag', true) ? get_post_meta($post->ID, 'rrze_publications_verlag', true) : '') . ' ';
-				print (get_post_meta($post->ID, 'rrze_publications_jahr', true) ? get_post_meta($post->ID, 'rrze_publications_jahr', true) : '') . '<br />';
-			}
+			print ($isbn ? __('ISBN', RRZE_Publikationen::textdomain) . ': <span itemprop="isbn">' . $isbn . '</span><br />' : '');
 			?>
 		</p>
 
-		<?php if (get_post_meta($post->ID, 'rrze_publications_preis', true) || get_post_meta($post->ID, 'rrze_publications_vorraetig', true)) {
-			?>
-			<p>
+		<?php if ($preis || $vorraetig) { ?>
+			<p itemprop="offers" itemscope itemtype="http://schema.org/Offer">
 				<?php setlocale(LC_MONETARY, get_locale());
-				print (get_post_meta($post->ID, 'rrze_publications_preis', true) ? __('Preis: ', RRZE_Publikationen::textdomain) . money_format('%.2n', get_post_meta($post->ID, 'rrze_publications_preis', true)) : '');
+				$locale_info = localeconv();
+				print ($preis ? __('Preis: ', RRZE_Publikationen::textdomain)
+					. '<span itemprop="price" content="' . $preis . '">'
+					. money_format('%.2n', $preis)
+					. '</span><meta itemprop="priceCurrency" content="'. $locale_info['int_curr_symbol'] . '" /><br />'
+					: '');
 				?>
-				<br />
-				<?php print __('Vorrätig:', RRZE_Publikationen::textdomain) . ' ' . (get_post_meta($post->ID, 'rrze_publications_vorraetig', true) == 1 ? __('ja', RRZE_Publikationen::textdomain) : __('nein', RRZE_Publikationen::textdomain)); ?>
+				<?php print __('Vorrätig:', RRZE_Publikationen::textdomain) . ' '
+					. ($vorraetig == 1
+					? '<meta itemprop="availability" content="http://schema.org/InStock" />' . __('ja', RRZE_Publikationen::textdomain)
+					: '<meta itemprop="availability" content="http://schema.org/OutOfStock"/>' . __('nein', RRZE_Publikationen::textdomain));
+				?>
 
 			</p>
 		<?php } ?>
 
-		<h3><?php _e('Inhalt:', RRZE_Publikationen::textdomain); ?></h3>
-		<p><?php the_content(); ?></p>
+		<h3 style="clear: none;"><?php _e('Inhalt:', RRZE_Publikationen::textdomain); ?></h3>
+		<div><?php the_content(); ?></div>
 
 	</div><!-- .entry-content -->
 
 	<footer class="entry-footer">
+		<span class="tags-links">
+			<?php the_terms(
+				$post->ID,
+				'tags',
+				'<span class="screen-reader-text">' . __('Schlagwörter', RRZE_Publikationen::textdomain) . ': </span>',
+				', '
+			); ?>
+		</span>
 		<?php edit_post_link(__('Edit', RRZE_Publikationen::textdomain), '<span class="edit-link">', '</span>'); ?>
 	</footer><!-- .entry-footer -->
 

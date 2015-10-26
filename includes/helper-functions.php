@@ -237,7 +237,7 @@ class Publications_Helper {
 		if (isset($name) &&  isset($labeltext))  { ?>
 			<div class="checkbox">
 
-			<input type="checkbox" name="<?php echo $name; ?>" id="<?php echo $name; ?>" class="checkbox" value="1" checked="<?php echo ($prevalue =='1') ? 'checked' : '' ?>" />
+			<input type="checkbox" name="<?php echo $name; ?>" id="<?php echo $name; ?>" class="checkbox" value="1" <?php echo ($prevalue ==='1') ? 'checked="checked"' : '' ?>" />
 			<label for="<?php echo $name; ?>"><?php echo $labeltext; ?></label>
 
 			</div>

@@ -82,6 +82,13 @@ class Publications_Custom_Fields {
 			date("Y") + 5,
 			1
 		);
+		// ISBN
+		$rrze_publications_isbn = get_post_meta($object->ID, 'rrze_publications_isbn', true);
+		Publications_Helper::rrze_publications_form_text (
+			'rrze_publications_isbn',
+			$rrze_publications_isbn,
+			__('ISBN', self::textdomain)
+		);
 		// Zusatzinformationen (z.B. "in:")
 		$rrze_publications_zusatz = get_post_meta($object->ID, 'rrze_publications_zusatz', true);
 		Publications_Helper::rrze_publications_form_textarea (
@@ -184,6 +191,20 @@ class Publications_Custom_Fields {
 			}
 		} elseif ($oldval) {
 			delete_post_meta($post_id, 'rrze_publications_jahr', $oldval);
+		}
+
+
+		$newval = ( isset($_POST['rrze_publications_isbn']) ? sanitize_text_field($_POST['rrze_publications_isbn']) : 0 );
+		$oldval = get_post_meta($post_id, 'rrze_publications_isbn', true);
+
+		if (!empty(trim($newval))) {
+			if (isset($oldval) && ($oldval != $newval)) {
+				update_post_meta($post_id, 'rrze_publications_isbn', $newval);
+			} else {
+				add_post_meta($post_id, 'rrze_publications_isbn', $newval, true);
+			}
+		} elseif ($oldval) {
+			delete_post_meta($post_id, 'rrze_publications_isbn', $oldval);
 		}
 
 

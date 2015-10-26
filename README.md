@@ -17,11 +17,13 @@ Erfassung und Darstellung von Publikationen, ergänzt um grundlegende Felder fü
     * Ort
     * Verlag
     * Erscheinungsjahr
+	* ISBN
     * Weitere Informationen
   * Meta-Box 'Verwaltung':
     * Preis
     * Vorrätig
 * Shortcodes zur Einbindung in Seiten
+* Hierarchische Schlagwörter
 * Für Übersetzung vorbereitet (Standardsprache: Deutsch)
 
 #### Shortcode-Definition:
@@ -45,7 +47,7 @@ bei Listen und Tabellen:
 
 bei Tabellen:
 - `cols="title|publisher|price|availible|updated"`: Liste und Reihenfolge der Felder für die Tabelle (einzelne Schlagwörter durch Pipe ("|") getrennt)<br />
-  verfügbare Felder: author, title, location, publisher, price, availible, updated<br />
+  verfügbare Felder: author, title, location, publisher, isbn, price, availible, updated<br />
   Standardeinstellung: "author|title|publisher|price|availible"
 
 bei Einzelansicht (single):
