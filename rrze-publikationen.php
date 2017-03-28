@@ -357,7 +357,8 @@ class RRZE_Publikationen {
         }
 
         if ($show == 'table') {
-            $output .= '<table class="' . $class . '">';
+            $output .= '<div style="overflow-x:auto;">'
+                    . '<table style="min-width:600px; word-break:normal;" class="' . $class . '">';
             $output .= '<thead>';
             $output .= '<tr>';
             foreach ($table_cols as $table_col) {
@@ -460,7 +461,7 @@ class RRZE_Publikationen {
         }
 
         if ($show == 'table') {
-            $output .= '</table>';
+            $output .= '</table></div>';
         }
 
         wp_reset_postdata();
