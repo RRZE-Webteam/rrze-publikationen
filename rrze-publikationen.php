@@ -3,11 +3,13 @@
 /*
   Plugin Name: RRZE-Publikationen
   Plugin URI: https://github.com/RRZE-Webteam/rrze-publikationen
-  Version: 1.1
+  Version: 1.1.0
   Description: Plugin zum Verwalten von Publikationen (Inhaltstyp und Shortcodes)
   Author: RRZE-Webteam
   Author URI: http://blogs.fau.de/webworking/
-  Network:
+  Text Domain: rrze-publikationen
+  Domain Path: /languages
+  License: GPLv2 or later
  */
 
 /*
